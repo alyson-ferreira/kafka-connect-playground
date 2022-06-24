@@ -1,0 +1,21 @@
+#!/bin/sh
+docker compose up --detach
+
+kafka-topics --bootstrap-server localhost:9092 --create --topic "sometopic" --partitions 2
+kafka-topics --bootstrap-server localhost:9092 --delete --topic "sometopic"
+kafka-console-consumer --bootstrap-server localhost:9092 --topic "sometopic" --from-beginning
+
+cd filesink && mvn package && cd .. && cp filesink/target/file-sink-connector.jar connectors/file-sink-connector/file-sink-connector.jar && chmod -R o+rx connectors/;
+
+cd publisher && mvn package && cd ..;
+java -jar publisher/target/test-1.0.0.jar
+
+curl -X DELETE http://localhost:8083/connectors/test/; echo "" > output/sometopic.txt; curl -X PUT -H 'Content-Type: application/json' -d@filesink.json http://localhost:8083/connectors/test/config
+curl http://localhost:8083/connectors/test/status | jq
+curl -X POST http://localhost:8083/connectors/test/restart
+curl -X DELETE http://localhost:8083/connectors/test/; curl http://localhost:8083/connectors/;
+watch curl http://localhost:8083/connectors/test/status \| jq -r '.tasks[0].trace'
+
+docker compose restart kafka-connect && until [ "$(docker inspect -f '{{.State.Health.Status}}' kafka-connect)" = "healthy" ]; do sleep 0.1; done;
+docker compose down kafka-connect && docker compose up kafka-connect --detach && until [ "$(docker inspect -f '{{.State.Health.Status}}' kafka-connect)" = "healthy" ]; do sleep 0.1; done;
+docker compose up --detach && until [ "$(docker inspect -f '{{.State.Health.Status}}' kafka-connect)" = "healthy" ]; do sleep 0.1; done;

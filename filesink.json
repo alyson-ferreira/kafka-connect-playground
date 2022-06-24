@@ -1,0 +1,13 @@
+{
+  "connector.class":  "file.connector.FileStreamSinkConnector",
+  "topics":  "sometopic",
+  "file": "/tmp/output/sometopic.txt",
+  "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+  "value.converter": "io.confluent.connect.avro.AvroConverter",
+  "value.converter.schema.registry.url": "http://kafka-schema-registry:8081",
+  "transforms": "filterExcludes",
+  "transforms.filterExcludes.type": "io.confluent.connect.transforms.Filter$Value",
+  "transforms.filterExcludes.filter.condition": "$[?(@.exclude =~ /..*/)]",
+  "transforms.filterExcludes.filter.type": "exclude",
+  "transforms.filterExcludes.filter.missing.or.null.behavior": "include"
+}

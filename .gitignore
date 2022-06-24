@@ -1,0 +1,4 @@
+connectors/
+*.jar
+target/
+output/sometopic.txt

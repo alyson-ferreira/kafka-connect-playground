@@ -1,0 +1,19 @@
+[
+  {
+    "type": "record",
+    "name": "Test",
+    "namespace": "local.test.avro",
+    "fields": [
+      {
+        "name": "include",
+        "type": [ "null", "int" ],
+        "default": null
+      },
+      {
+        "name": "exclude",
+        "type": [ "null", "string" ],
+        "default": null
+      }
+    ]
+  }
+]
